@@ -1,2 +1,2 @@
 # sbtVerifier
-A simple SBT Verifier (code in rust)
+A simple Verifier (code in ts)
