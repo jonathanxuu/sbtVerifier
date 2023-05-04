@@ -2,8 +2,7 @@ use miden_vm::VMResult;
 use std::mem;
 
 // Used to restore the roothash, and send the roothash back with the security level
-pub fn restore_roothash(zkp_result: String) -> String {
-    let vm_result: VMResult = serde_json::from_str(&zkp_result).unwrap();
+pub fn restore_roothash(vm_result: VMResult) -> String {
     let outputs = compute_roothash(vm_result.outputs.stack);
     return hex::encode(outputs);
 }

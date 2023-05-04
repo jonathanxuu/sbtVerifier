@@ -5,6 +5,7 @@ use helpers::cal_roothash::restore_roothash;
 use actix_web::middleware::Logger;
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 use env_logger::Env;
+use miden_vm::VMResult;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -12,7 +13,7 @@ pub struct Req {
     // used to verify the ZKP result
     pub program_hash: String,
     pub stack_inputs: String,
-    pub zkp_result: String,
+    pub zkp_result: VMResult,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -25,6 +26,9 @@ pub struct Resp {
 #[post("verify")]
 async fn verify(req: web::Json<Req>) -> impl Responder {
     log::info!("{:?}", &req.0.program_hash);
+
+
+
     // let zkp_result: String =
     //     fs::read_to_string("src/zkp_result.json").expect("LogRocket: error reading file");
     // let program_hash: String =
