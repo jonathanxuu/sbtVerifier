@@ -96,7 +96,7 @@ async fn main() -> std::io::Result<()> {
             .service(echo)
             .service(verify)
     })
-    .bind(("0.0.0.0", 7010))?
+    .bind(("0.0.0.0", 3000))?
     .run()
     .await
 }
