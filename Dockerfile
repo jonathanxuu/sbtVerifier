@@ -24,12 +24,13 @@ WORKDIR /usr/local/bin
 COPY --from=builder /app/target/$PROFILE/actix /usr/local/bin
 
 RUN apk add --no-cache -U libgcc
-
+RUN apk --no-cache add socat
 USER root
 
 # Expose the port for accessing the HTTP server within the container
 EXPOSE 3000/tcp
 # Run the binary built inside the container
-CMD ["actix"]
-
+# CMD ["actix"]
+RUN chmod +x /app/run.sh
+CMD ["/app/run.sh"]
 
