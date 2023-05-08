@@ -19,9 +19,10 @@ LABEL maintainer="zCloak Network"
 LABEL description="zCloak Network provides Zero-Knowledge Proof as a Service for public blockchains."
 
 ARG PROFILE=release
-WORKDIR /usr/local/bin
-
-COPY --from=builder /app/target/$PROFILE/actix /usr/local/bin
+# WORKDIR /usr/local/bin
+WORKDIR /app
+COPY ./run.sh ./
+COPY --from=builder /app/target/$PROFILE/actix ./
 
 RUN apk add --no-cache -U libgcc
 RUN apk --no-cache add socat
