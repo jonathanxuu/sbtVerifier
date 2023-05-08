@@ -8,7 +8,7 @@ COPY ./ ./
 # Build your application for release, inside the container
 RUN set -eux && cargo build --${PROFILE} 
 
-FROM docker.io/library/debian:stable-slim
+FROM alpine:3.17
 
 LABEL maintainer="zCloak Network"
 LABEL description="zCloak Network provides Zero-Knowledge Proof as a Service for public blockchains."
@@ -16,14 +16,9 @@ LABEL description="zCloak Network provides Zero-Knowledge Proof as a Service for
 ARG PROFILE=release
 WORKDIR /usr/local/bin
 
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+
 COPY --from=builder /app/target/$PROFILE/actix /usr/local/bin
 
-RUN apt-get -y update && \
-    apt-get -y install openssl && \
-    apt-get autoremove -y && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/
 
 USER root
 
