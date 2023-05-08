@@ -1,13 +1,18 @@
 # Tells docker to use the latest Rust official image
-FROM rust:latest as builder
+FROM rust:alpine3.17 as builder
 ARG PROFILE=release
 WORKDIR /app
 
 # Copy the project files from your machine to the container
 COPY ./ ./
 # Build your application for release, inside the container
-RUN set -eux && cargo build --${PROFILE} 
 
+RUN apk add --no-cache -U musl-dev
+RUN RUSTFLAGS="-C target-feature=-crt-static" cargo build --release
+
+# RUN set -eux && cargo build --${PROFILE} 
+
+# FROM docker.io/library/debian:stable-slim
 FROM alpine:3.17
 
 LABEL maintainer="zCloak Network"
@@ -16,9 +21,9 @@ LABEL description="zCloak Network provides Zero-Knowledge Proof as a Service for
 ARG PROFILE=release
 WORKDIR /usr/local/bin
 
-
 COPY --from=builder /app/target/$PROFILE/actix /usr/local/bin
 
+RUN apk add --no-cache -U libgcc
 
 USER root
 
