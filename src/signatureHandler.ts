@@ -1,10 +1,12 @@
 import type { Keypair } from '@zcloak/crypto/types';
 import { secp256k1Sign } from '@zcloak/crypto';
-import { getMessage } from '@zcloak/crypto/eip712/eip712';
+import { getMessage, encodeData } from '@zcloak/crypto/eip712/eip712';
 import type { DidUrl } from '@zcloak/did-resolver/types';
 import type { HexString } from '@zcloak/crypto/types';
 import type { VerifiableCredentialVersion } from '@zcloak/vc/types';
 import { parseDid } from '@zcloak/did-resolver/parseDid'
+import { u8aToHex } from "@polkadot/util"
+import {KeyringPair} from "@zcloak/keyring/types"
 
 export function eip712_sign(
     recipient: DidUrl,
@@ -12,7 +14,7 @@ export function eip712_sign(
     program_hash: string,
     digest: HexString,
     verifier: string,
-    keypair: Keypair,
+    keypair: KeyringPair,
     attester: DidUrl,
     zkp_result: string,
     issuance_date: number,
@@ -22,8 +24,7 @@ export function eip712_sign(
 ): Uint8Array {
     let typedData = constrcut_typedData(recipient, ctype, program_hash, digest, attester, verifier, zkp_result, issuance_date, expiration_date, vc_version, sbt_link);
     const message = getMessage(typedData, true);
-
-    const signature = secp256k1Sign(message, keypair);
+    const signature = keypair.sign(message);
     return signature;
 }
 
@@ -57,7 +58,7 @@ function constrcut_typedData(
                 { name: 'chainId', type: 'uint256' },
                 { name: 'verifyingContract', type: 'address' }
             ],
-            Signature: [
+            signature: [
                 { name: 'recipient', type: 'address' },
                 { name: 'ctype', type: 'bytes32' },
                 { name: 'programHash', type: 'bytes32' },
@@ -71,13 +72,14 @@ function constrcut_typedData(
                 { name: 'sbtLink', type: 'string' },
             ]
         },
-        primaryType: 'Signature',
+        primaryType: 'signature',
         // change when the final contract is deployed
         domain: {
             name: 'zCloakSBT',
             version: '0',
-            chainId: 4,
-            verifyingContract: '0x6b7baf71cb9f4858325e76a4e8f085e9c54635b8'
+            // chainId: 4,
+            chainId: 31337, // hardhat test chainId
+            verifyingContract: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512' // hardhat test contract
         },
         message: {
             recipient: recipient_address,

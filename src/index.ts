@@ -3,7 +3,9 @@ import type { DidUrl } from "@zcloak/did-resolver/types";
 import type { Proof } from "@zcloak/vc/types";
 import type { VerifiableCredentialVersion } from "@zcloak/vc/types";
 import {
+    ethereumEncode,
     initCrypto,
+    keccak256AsU8a,
     secp256k1PairFromSeed,
 } from "@zcloak/crypto";
 import { caclculateDigest } from "./digestHandler";
@@ -12,6 +14,11 @@ import { eip712_sign } from "./signatureHandler";
 import { keys } from "@zcloak/did";
 import { Keyring } from "@zcloak/keyring";
 import { mnemonicToMiniSecret } from "@zcloak/crypto";
+import { u8aToHex, hexToU8a } from "@polkadot/util"
+import { fromMnemonic } from "@zcloak/did/keys";
+const hdkey = require("hdkey"); // wallet lib
+const bip39 = require("bip39"); // mnemonic generator
+const ethUtil = require('ethereumjs-util');
 
 // == phase 0: ZKP Generated (Generated in zkID Wallet, send to Server To Verify)  =====
 // The following metadata should be passed from web to server
@@ -36,8 +43,8 @@ let program_hash: string =
     "01d680e6c4f82c8274c43626c67a0f494e65f147245330a3bd6a9c69271223c1";
 let stack_input: string = "12";
 
-initCrypto().then(() =>
-    sbt_verifier(
+initCrypto().then(async () => {
+    const result = await sbt_verifier(
         user_did,
         ctype,
         vc_version,
@@ -48,7 +55,9 @@ initCrypto().then(() =>
         zkp_result,
         program_hash,
         stack_input
-    )
+    );
+    console.log(result);
+}
 );
 
 // ================================== Main Function ========================================
@@ -102,22 +111,19 @@ async function sbt_verifier(
     // should be replaced with the true verifier, here is a `demo` verifier
     let mnemonic =
         "health correct setup usage father decorate curious copper sorry recycle skin equal";
-    const seed = mnemonicToMiniSecret(mnemonic);
-    const pair = secp256k1PairFromSeed(seed);
-
     const testKeyring = new Keyring();
-    let verifier = keys.fromMnemonic(
-        testKeyring,
-        "health correct setup usage father decorate curious copper sorry recycle skin equal"
-    ).identifier;
+
+    const did = fromMnemonic(testKeyring, mnemonic);
+    const controllerPath = `/m/44'/60'/0'/0/0`;
+    const controller = testKeyring.addFromMnemonic(mnemonic, controllerPath, 'ecdsa');
 
     let verifier_signature: Uint8Array = eip712_sign(
         user_did,
         ctype,
         program_hash,
         digest,
-        verifier,
-        pair,
+        did.identifier,
+        controller,
         attester_did,
         zkp_result,
         issuance_date,
@@ -152,3 +158,5 @@ function upload_sbt_to_arweave(
     // return the Arweave link of the SBT picture
     return "ar:///MzXyO8ZH3dyyp9wdXAVuUT57vGLFifs3TnskClOoFSQ";
 }
+
+
