@@ -19,7 +19,7 @@ pub struct Req {
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Resp {
     pub roothash: String,
-    pub security_level: u32,
+    pub is_valid: bool,
 }
 
 
@@ -50,35 +50,22 @@ async fn verify(req: web::Json<Req>) -> impl Responder {
 
     // ========================== Verification Phrase =============================
     // In the Verification Phrase, we check the validity of user's zkp result(if the ZKP is valid, the verify_result should be a u32 which represent security level, i.g. 96)
-    let security_level: u32 = miden_vm::verify_zk_program(
+    let verification_result = miden_vm::verify_zk_program(
         req.0.program_hash,
         req.0.stack_inputs,
         req.0.zkp_result.clone(),
     );
+
     let roothash: String = restore_roothash(req.0.zkp_result);
-    // assert_eq!(
-    //     type_of(verify_result), u32,
-    //     "The User's ZKP doesn't pass the verification"
-    // );
-
-    if type_of(security_level) != String::from("u32") {
-        log::warn!("The User's ZKP doesn't pass the verification.")
-    } else {
-        log::info!("Success.")
-    }
-
+    
     HttpResponse::Ok().json(Resp {
         roothash,
-        security_level
+        is_valid: verification_result.is_ok()
     })
 }
 
 
 // ====================== Helper Function ====================================
-fn type_of<T>(_: T) -> &'static str {
-    std::any::type_name::<T>()
-}
-
 #[get("/")]
 async fn echo() -> impl Responder {
     HttpResponse::Ok().body("OK")
