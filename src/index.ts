@@ -40,8 +40,8 @@ let attester_proof: Proof = {
 };
 let zkp_result: string = `{"outputs":{"stack":[8,12,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"overflow_addrs":[0,1]},"starkproof":{"proof":{"context":{"trace_layout":{"main_segment_width":72,"aux_segment_widths":[9],"aux_segment_rands":[16],"num_aux_segments":1},"trace_length":1024,"trace_meta":[],"field_modulus_bytes":[1,0,0,0,255,255,255,255],"options":{"num_queries":27,"blowup_factor":8}}}}}`;
 let program_hash: string =
-    "01d680e6c4f82c8274c43626c67a0f494e65f147245330a3bd6a9c69271223c1";
-let stack_input: string = "12";
+    "415a479f191532b76f464c2f0368acf528ff4d1c525c3bc88f63a6ecf3d71872";
+let stack_input: string = "655660800";
 
 initCrypto().then(async () => {
     const result = await sbt_verifier(
@@ -78,6 +78,17 @@ async function sbt_verifier(
 
     let [roothash, _security_level]: [HexString, number] =
         verify_zk_program_in_server(program_hash, stack_input, zkp_result);
+
+    let current_time = new Date();
+    let compare_time = current_time.setFullYear(current_time.getFullYear() - 18);
+
+    if (
+        (program_hash == "415a479f191532b76f464c2f0368acf528ff4d1c525c3bc88f63a6ecf3d71872" || program_hash == "3bfa5c8dd5c05a80b53218367d743dd9afc80ce947b96742328cec28a8228b38")
+        &&
+        Number(stack_input) >= new Date(compare_time).getTime() / 1000
+    ) {
+        throw new Error("The public input used in the program is invalid");
+    }
     // ========== phase 2: Restore the digest and check the attester's signature ===========
 
     const digest: HexString = caclculateDigest(
