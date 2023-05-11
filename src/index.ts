@@ -76,8 +76,12 @@ async function sbt_verifier(
     // ============= phase 1: ZKP send to the Rust Verifier ================================
     // The Rust Verifier should verify whether the ZKP is valid, and return the roothash and security_level(u32)
 
-    let [roothash, _security_level]: [HexString, number] =
+    let [roothash, is_valid]: [HexString, boolean] =
         verify_zk_program_in_server(program_hash, stack_input, zkp_result);
+
+    if (!is_valid) {
+        throw new Error("The ZKP Proof is invalid");
+    }
 
     let current_time = new Date();
     let compare_time = current_time.setFullYear(current_time.getFullYear() - 18);
@@ -150,13 +154,13 @@ function verify_zk_program_in_server(
     program_hash: string,
     stack_input: string,
     zkp_result: string
-): [HexString, number] {
+): [HexString, boolean] {
     // ZKP Verifier inputs: program_hash, stack_inputs, zkp_result
-    // ZKP Verifier outputs: roothash, security_level
+    // ZKP Verifier outputs: roothash, is_valid
     let roothash: HexString =
         "0x3f209f25b1594a778f0f65522e5d53c7bc7ae78923418b45472e02bb361629e4";
-    let security_level = 96;
-    return [roothash, security_level];
+    let is_valid = true;
+    return [roothash, is_valid];
 }
 
 function upload_sbt_to_arweave(
