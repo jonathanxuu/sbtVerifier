@@ -3,7 +3,14 @@ use std::mem;
 
 // Used to restore the roothash, and send the roothash back with the security level
 pub fn restore_roothash(vm_result: VMResult) -> String {
-    let outputs = compute_roothash(vm_result.outputs.stack);
+    let stack_vec = vm_result
+        .outputs
+        .stack
+        .iter()
+        .map(|init| init.parse::<u64>().unwrap())
+        .collect();
+
+    let outputs = compute_roothash(stack_vec);
     return hex::encode(outputs);
 }
 

@@ -22,12 +22,9 @@ pub struct Resp {
     pub is_valid: bool,
 }
 
-
 #[post("verify")]
 async fn verify(req: web::Json<Req>) -> impl Responder {
     log::info!("{:?}", &req.0.program_hash);
-
-
 
     // let zkp_result: String =
     //     fs::read_to_string("src/zkp_result.json").expect("LogRocket: error reading file");
@@ -57,20 +54,18 @@ async fn verify(req: web::Json<Req>) -> impl Responder {
     );
 
     let roothash: String = restore_roothash(req.0.zkp_result);
-    
+
     HttpResponse::Ok().json(Resp {
         roothash,
-        is_valid: verification_result.is_ok()
+        is_valid: verification_result.is_ok(),
     })
 }
-
 
 // ====================== Helper Function ====================================
 #[get("/")]
 async fn echo() -> impl Responder {
     HttpResponse::Ok().body("OK")
 }
-
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
