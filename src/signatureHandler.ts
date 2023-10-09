@@ -78,8 +78,8 @@ function constrcut_typedData(
             name: 'zCloakSBT',
             version: '0',
             // chainId: 4,
-            chainId: 31337, // hardhat test chainId
-            verifyingContract: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512' // hardhat test contract
+            chainId: 1, // hardhat test chainId
+            verifyingContract: '0x57E7b664aaa7C895878DdCa5790526B9659350Ec' // hardhat test contract
         },
         message: {
             recipient: recipient_address,
@@ -95,5 +95,6 @@ function constrcut_typedData(
             sbtLink: sbt_link
         }
     }
+    console.log(typedData.message)
     return typedData;
 };

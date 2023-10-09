@@ -131,7 +131,7 @@ async function sbt_verifier(
     const did = fromMnemonic(testKeyring, mnemonic);
     const controllerPath = `/m/44'/60'/0'/0/0`;
     const controller = testKeyring.addFromMnemonic(mnemonic, controllerPath, 'ecdsa');
-
+        console.log(did.identifier)
     let verifier_signature: Uint8Array = eip712_sign(
         user_did,
         ctype,
@@ -146,6 +146,7 @@ async function sbt_verifier(
         vc_version,
         sbt_link
     );
+    console.log(u8aToHex(verifier_signature))
     return [verifier_signature, sbt_link];
 }
 
