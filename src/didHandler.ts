@@ -10,7 +10,7 @@ export async function verify_digest_signature(
     attester_did: DidUrl,
     proof: Proof,
     digest: HexString,
-    vc_version: VerifiableCredentialVersion,
+    vc_version: string,
 ): Promise<boolean> {
     const attester: Did = await helpers.fromDid(attester_did);
     const message = vc_version === '1' ? signedVCMessage(digest, vc_version) : digest;
