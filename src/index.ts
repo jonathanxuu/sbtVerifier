@@ -40,7 +40,7 @@ let contractAddr: string = '0xe7366703cE41FfEfd0f6890ec484280Dc88B543b';
 let timestamp: number = 1697708475764;
 
 initCrypto().then(async () => {
-    const result = await sbt_verifier(
+    const result = await kyc_verifier(
         user_did,
         ctype,
         vc_version,
@@ -54,7 +54,7 @@ initCrypto().then(async () => {
 );
 
 // ================================== Main Function ========================================
-async function sbt_verifier(
+async function kyc_verifier(
     user_did: DidUrl,
     ctype: HexString,
     vc_version: VerifiableCredentialVersion,
