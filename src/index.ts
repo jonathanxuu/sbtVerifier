@@ -69,7 +69,7 @@ async function kyc_signer(
     contractAddress: string,
     isKYA: boolean,
     network: string
-): Promise<[Uint8Array]> {
+): Promise<[Uint8Array, number?]> {
     // ========== phase 0 : Create & Run a Verifier DID in server ============
     // should be replaced with the true verifier, here is a `demo` verifier
 
@@ -85,9 +85,9 @@ async function kyc_signer(
     let verifier_signature: Uint8Array = new Uint8Array();
 
     // ========== phase 0 : Verifier should make a signature for the whole process(text) ====
-
+    let riskScore;
     if (isKYA) {
-        const riskScore = fetch_kya_result(network, on_chain_address);
+        riskScore = fetch_kya_result(network, on_chain_address);
         verifier_signature = eip712_sign_kyc(
             controller,
             digest,
@@ -106,7 +106,7 @@ async function kyc_signer(
         );
     }
     console.log(u8aToHex(verifier_signature))
-    return [verifier_signature];
+    return [verifier_signature, isKYA? riskScore : undefined];
 }
 
 
