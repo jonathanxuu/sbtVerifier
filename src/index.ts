@@ -1,53 +1,55 @@
-import type { HexString } from "@zcloak/crypto/types";
-import type { DidUrl } from "@zcloak/did-resolver/types";
-import type { Proof } from "@zcloak/vc/types";
-import type { VerifiableCredentialVersion } from "@zcloak/vc/types";
+import type { HexString } from '@zcloak/crypto/types';
+import type { DidUrl } from '@zcloak/did-resolver/types';
+import type { Proof } from '@zcloak/vc/types';
+import type { VerifiableCredentialVersion } from '@zcloak/vc/types';
 import dayjs from 'dayjs';
 import {
     initCrypto
-} from "@zcloak/crypto";
-import { caclculateDigest } from "./digestHandler";
-import { verify_digest_signature } from "./didHandler";
-import { eip712_sign_kyc } from "./signatureHandler";
-import { Keyring } from "@zcloak/keyring";
-import { u8aToHex, hexToU8a } from "@polkadot/util"
-import { fromMnemonic } from "@zcloak/did/keys";
+} from '@zcloak/crypto';
+import { eip712_sign_kyc } from './signatureHandler';
+import { Keyring } from '@zcloak/keyring';
+import { u8aToHex, hexToU8a } from '@polkadot/util'
+import { fromMnemonic } from '@zcloak/did/keys';
 
-// == phase 0: ZKP Generated (Generated in zkID Wallet, send to Server To Verify)  =====
+// ======================== phase 0: The PublicVC Field ====================================
 // The following metadata should be passed from web to server
-let userDid: DidUrl = "did:zk:0x11f8b77F34FCF14B7095BF5228Ac0606324E82D1";
+let userDid: DidUrl = 'did:zk:0x11f8b77F34FCF14B7095BF5228Ac0606324E82D1';
 let ctype: HexString =
-    "0x8a841a46b6e683a2b63c995f23a5590c946731007b451209711a239f2030a387";
-let vcVersion: VerifiableCredentialVersion = "1";
-let issuanceDate: number = 1697527231422;
+    '0xd31523b3ce506cceffa8e987e4c7a21299e93c4f28614d5da7d1026e6cf3490b';
+let vcVersion: VerifiableCredentialVersion = '2';
+let issuanceDate: number = 1698305373148;
 let expirationDate: number = 0;
-
-let attesterDid: DidUrl = "did:zk:0xFeDE01Ff4402e35c6f6d20De9821d64bDF4Ba563";
+let digest: HexString = '0x18ade1688a9746a765856f3012eaa923d06421ffade57476bff487bf332e8d17';
+let attesterDid: DidUrl = 'did:zk:0xFeDE01Ff4402e35c6f6d20De9821d64bDF4Ba563';
 let attesterProof: Proof = {
     type: 'EcdsaSecp256k1SignatureEip191',
-    created: 1697527231429,
+    created: 1698305373157,
     verificationMethod: 'did:zk:0xFeDE01Ff4402e35c6f6d20De9821d64bDF4Ba563#key-0',
     proofPurpose: 'assertionMethod',
-    proofValue: 'z8j93B63TCHAXSrAHDyydGXDCkTAg28XZHFXov3MJ7iMstihNFhRvYCTUBxaQD4qfFrmpGjAqjHcSkXJXuauYSoVwv'
+    proofValue: 'z8SNPwL1a8Km1Xni3u5R4kmWyeeKm1wPyNU3qy4Ar3uMAFcYJNL5sqaLsR2DcU5SbUWQ2r8upbHBAKkT7sQQvwUyUC'
 };
-let claimUserEthAddr: string = '05476EE9235335ADd2e50c09B2D16a3A2cC4ebEC';
-let claimStatus: number = 1;
+
+// VC Claim Info
+let kyc_status: number = 1;
+let chain_code: string = 'eth';
+let on_chain_address: string = '0x05476EE9235335ADd2e50c09B2D16a3A2cC4ebEC';
+
+// the client send the following 4 params
+let network: string = 'Ethereum';
 let chainID: number = 420;
 let contractAddr: string = '0xe7366703cE41FfEfd0f6890ec484280Dc88B543b';
 
 // let timestamp: number =  dayjs().toDate().getTime();
 let timestamp: number = 1697708475764;
-let network: string = "Ethereum";
+
 initCrypto().then(async () => {
-    const result = await kyc_verifier(
-        userDid,
-        claimUserEthAddr,
-        ctype,
-        vcVersion,
-        issuanceDate,
-        expirationDate,
-        attesterDid,
-        attesterProof,
+    // ============= phase 1: fetch VC, check VC validity ================================
+    // isVC? || computeRoothash, computeDigest, checkSignature || notCheck
+
+    // ============= phase 2: Server Sign Signature ================================
+
+    const result = await kyc_signer(
+        digest,
         chainID,
         contractAddr,
         false,
@@ -59,46 +61,18 @@ initCrypto().then(async () => {
 
 
 // ================================== Main Function ========================================
-async function kyc_verifier(
-    userDid: DidUrl,
-    userOnChainAddress: string,
-    ctype: HexString,
-    vcVersion: VerifiableCredentialVersion,
-    issuanceDate: number,
-    expirationDate: number,
-    attesterDid: DidUrl,
-    attesterProof: Proof,
+async function kyc_signer(
+    digest: HexString,
     chainID: number,
     contractAddress: string,
     isKYA: boolean,
     network: string
 ): Promise<[Uint8Array]> {
-    // ============= phase 1: check VC validity ================================
-    // isVC? || computeRoothash, computeDigest, checkSignature || notCheck
-    let roothash: HexString =
-        "0xca2cf029af6532f7683dee845f22dd0263d2abd3e5ea188245681e33274bd4f9";
-
-    const digest: HexString = caclculateDigest(
-        roothash,
-        userDid,
-        issuanceDate,
-        expirationDate,
-        ctype,
-        vcVersion
-    );
-
-    const signature_verify_result: boolean = await verify_digest_signature(
-        attesterDid,
-        attesterProof,
-        digest,
-        vcVersion
-    );
-
-    // ========== phase 2: Verifier should make a signature for the whole process(text) ====
-
+    // ========== phase 0 : Create & Run a Verifier DID in server ============
     // should be replaced with the true verifier, here is a `demo` verifier
+
     let mnemonic =
-        "health correct setup usage father decorate curious copper sorry recycle skin equal";
+        'health correct setup usage father decorate curious copper sorry recycle skin equal';
     const testKeyring = new Keyring();
 
     const did = fromMnemonic(testKeyring, mnemonic);
@@ -108,30 +82,22 @@ async function kyc_verifier(
 
     let verifier_signature: Uint8Array = new Uint8Array();
 
+    // ========== phase 0 : Verifier should make a signature for the whole process(text) ====
+
     if (isKYA) {
-        const kya_result = fetch_kya_result(network, userOnChainAddress);
+        const riskScore = fetch_kya_result(network, on_chain_address);
         verifier_signature = eip712_sign_kyc(
-            userDid,
-            ctype,
             controller,
-            issuanceDate,
-            expirationDate,
-            claimUserEthAddr,
-            claimStatus,
+            digest,
             chainID,
             contractAddress,
             timestamp,
-            kya_result
+            riskScore
         );
     } else {
         verifier_signature = eip712_sign_kyc(
-            userDid,
-            ctype,
             controller,
-            issuanceDate,
-            expirationDate,
-            claimUserEthAddr,
-            claimStatus,
+            digest,
             chainID,
             contractAddress,
             timestamp

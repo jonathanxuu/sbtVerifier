@@ -7,29 +7,19 @@ import { hexToU8a, isU8a, u8aConcat, u8aToBuffer, u8aToU8a } from '@polkadot/uti
 const EIP_191_PREFIX = hexToU8a('0x1901');
 
 export function eip712_sign_kyc(
-    recipient: DidUrl,
-    ctype: HexString,
     keypair: KeyringPair,
-    issuance_date: number,
-    expiration_date: number,
-    claimUserEthAddr: string,
-    claimStatus: number,
+    digest: HexString,
     chainID: number,
     contractAddr: string,
     timestamp: number,
-    kyaResult?: number
+    riskScore?: number
 ): Uint8Array {
     let typedData = construct_typedData(
-        recipient,
-        ctype,
-        issuance_date,
-        expiration_date,
-        claimUserEthAddr,
-        claimStatus,
+        digest,
         chainID,
         contractAddr,
         timestamp,
-        kyaResult
+        riskScore
     );
 
     const message = getMessage(typedData, true);
@@ -39,20 +29,13 @@ export function eip712_sign_kyc(
 
 
 function construct_typedData(
-    recipient: DidUrl,
-    ctype: HexString,
-    issuance_date: number,
-    expiration_date: number,
-    claimUserEthAddr: string,
-    claimStatus: number,
+    digest: HexString,
     chainID: number,
     contractAddr: string,
     timestamp: number,
-    kyaResult?: number
+    riskScore?: number
 ) {
-    const recipient_address: string = parseDid(recipient).identifier;
-
-    if (kyaResult == null) {
+    if (riskScore === undefined) {
         const typedData = {
             types: {
                 EIP712Domain: [
@@ -62,13 +45,8 @@ function construct_typedData(
                     { name: 'verifyingContract', type: 'address' }
                 ],
                 signature: [
-                    { name: 'userDID', type: 'address' },
-                    { name: 'ctype', type: 'bytes32' },
-                    { name: 'issuanceDate', type: 'bytes' },
-                    { name: 'expirationDate', type: 'bytes' },
-                    { name: 'claimUserEthAddr', type: 'string' },
-                    { name: 'claimStatus', type: 'uint256' },
-                    { name: 'chainID', type: 'uint256' },
+                    { name: 'digest', type: 'bytes32' },
+                    { name: 'chainId', type: 'uint256' },
                     { name: 'contractAddr', type: 'address' },
                     { name: 'timestamp', type: 'uint256' },
                 ]
@@ -83,12 +61,7 @@ function construct_typedData(
                 verifyingContract: "0x00351b372FB793D6Fa1902E6b2db2E6A7d8824E7" // zClock Verification Contract
             },
             message: {
-                userDID: recipient_address,
-                ctype: ctype,
-                issuanceDate: pad(issuance_date.toString(16)),
-                expirationDate: pad(expiration_date.toString(16)),
-                claimUserEthAddr: claimUserEthAddr,
-                claimStatus: claimStatus,
+                ctype: digest,
                 chainID: chainID,
                 contractAddr: contractAddr,
                 timestamp: timestamp
@@ -106,16 +79,11 @@ function construct_typedData(
                     { name: 'verifyingContract', type: 'address' }
                 ],
                 signature: [
-                    { name: 'userDID', type: 'address' },
-                    { name: 'ctype', type: 'bytes32' },
-                    { name: 'issuanceDate', type: 'bytes' },
-                    { name: 'expirationDate', type: 'bytes' },
-                    { name: 'claimUserEthAddr', type: 'string' },
-                    { name: 'claimStatus', type: 'uint256' },
-                    { name: 'chainID', type: 'uint256' },
+                    { name: 'digest', type: 'bytes32' },
+                    { name: 'chainId', type: 'uint256' },
                     { name: 'contractAddr', type: 'address' },
                     { name: 'timestamp', type: 'uint256' },
-                    { name: 'kyaResult', type: 'uint256' },
+                    { name: 'riskScore', type: 'uint256' },
 
                 ]
             },
@@ -126,19 +94,14 @@ function construct_typedData(
                 version: '0',
                 // chainId: 4,
                 chainId: chainID, // on which chainID to use
-                verifyingContract: "0x00351b372FB793D6Fa1902E6b2db2E6A7d8824E7" // zClock Verification Contract
+                verifyingContract: "0x00351b372FB793D6Fa1902E6b2db2E6A7d8824E7" // zClock Verification 
             },
             message: {
-                userDID: recipient_address,
-                ctype: ctype,
-                issuanceDate: pad(issuance_date.toString(16)),
-                expirationDate: pad(expiration_date.toString(16)),
-                claimUserEthAddr: claimUserEthAddr,
-                claimStatus: claimStatus,
+                digest: digest,
                 chainID: chainID,
                 contractAddr: contractAddr,
                 timestamp: timestamp,
-                kyaResult: kyaResult
+                riskScore: riskScore
             }
         }
         console.log(typedData.message)
@@ -146,13 +109,3 @@ function construct_typedData(
     }
 
 };
-
-function pad(input: string): string {
-    let padding;
-    if (input.length % 2 == 0) {
-        padding = input;
-    } else {
-        padding = '0' + input;
-    }
-    return '0x' + padding;
-}
