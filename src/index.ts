@@ -36,7 +36,7 @@ let on_chain_address: string = '0x05476EE9235335ADd2e50c09B2D16a3A2cC4ebEC';
 
 // the client send the following 4 params
 let network: string = 'Ethereum';
-let chainID: number = 420;
+let chainID: number = 1;
 let contractAddr: string = '0xe7366703cE41FfEfd0f6890ec484280Dc88B543b';
 
 // let timestamp: number =  dayjs().toDate().getTime();
@@ -46,13 +46,15 @@ initCrypto().then(async () => {
     // ============= phase 1: fetch VC, check VC validity ================================
     // isVC? || computeRoothash, computeDigest, checkSignature || notCheck
 
+    // the digest is from PublicVC, no need client to send
+
     // ============= phase 2: Server Sign Signature ================================
 
     const result = await kyc_signer(
         digest,
         chainID,
         contractAddr,
-        false,
+        true,
         network
     );
     console.log(result);

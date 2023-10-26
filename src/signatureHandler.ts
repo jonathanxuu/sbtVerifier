@@ -1,9 +1,9 @@
-import { getMessage, structHash } from '@zcloak/crypto/eip712/eip712';
+import { encodeData, getMessage, structHash } from '@zcloak/crypto/eip712/eip712';
 import type { DidUrl } from '@zcloak/did-resolver/types';
 import type { HexString } from '@zcloak/crypto/types';
 import { parseDid } from '@zcloak/did-resolver/parseDid'
 import { KeyringPair } from "@zcloak/keyring/types"
-import { hexToU8a, isU8a, u8aConcat, u8aToBuffer, u8aToU8a } from '@polkadot/util';
+import { hexToU8a, isU8a, u8aConcat, u8aToBuffer, u8aToU8a, u8aToHex } from '@polkadot/util';
 const EIP_191_PREFIX = hexToU8a('0x1901');
 
 export function eip712_sign_kyc(
@@ -26,7 +26,6 @@ export function eip712_sign_kyc(
     const signature = keypair.sign(message);
     return signature;
 }
-
 
 function construct_typedData(
     digest: HexString,
@@ -57,8 +56,8 @@ function construct_typedData(
                 name: 'SigVerify',
                 version: '0',
                 // chainId: 4,
-                chainId: chainID, // on which chainID to use
-                verifyingContract: "0x00351b372FB793D6Fa1902E6b2db2E6A7d8824E7" // zClock Verification Contract
+                chainId: 1, // on which chainID to use
+                verifyingContract: "0x358AA13c52544ECCEF6B0ADD0f801012ADAD5eE3" // zClock Verification 
             },
             message: {
                 digest: digest,
@@ -94,7 +93,7 @@ function construct_typedData(
                 version: '0',
                 // chainId: 4,
                 chainId: chainID, // on which chainID to use
-                verifyingContract: "0x00351b372FB793D6Fa1902E6b2db2E6A7d8824E7" // zClock Verification 
+                verifyingContract: "0x358AA13c52544ECCEF6B0ADD0f801012ADAD5eE3" // zClock Verification 
             },
             message: {
                 digest: digest,
