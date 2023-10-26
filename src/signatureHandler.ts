@@ -61,8 +61,8 @@ function construct_typedData(
                 verifyingContract: "0x00351b372FB793D6Fa1902E6b2db2E6A7d8824E7" // zClock Verification Contract
             },
             message: {
-                ctype: digest,
-                chainID: chainID,
+                digest: digest,
+                chainId: chainID,
                 contractAddr: contractAddr,
                 timestamp: timestamp
             }
@@ -98,7 +98,7 @@ function construct_typedData(
             },
             message: {
                 digest: digest,
-                chainID: chainID,
+                chainId: chainID,
                 contractAddr: contractAddr,
                 timestamp: timestamp,
                 riskScore: riskScore
