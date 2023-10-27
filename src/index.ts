@@ -36,8 +36,8 @@ let on_chain_address: string = '0x05476EE9235335ADd2e50c09B2D16a3A2cC4ebEC';
 
 // the client send the following 4 params
 let network: string = 'Ethereum';
-let chainID: number = 1;
-let contractAddr: string = '0xe7366703cE41FfEfd0f6890ec484280Dc88B543b';
+let chainID: number = 420;
+let contractAddr: string = '0x16DD27b59cAa6C2D67cB328EDad7E3Df19a59c60';
 
 // let timestamp: number =  dayjs().toDate().getTime();
 let timestamp: number = 1697708475764;
@@ -54,7 +54,7 @@ initCrypto().then(async () => {
         digest,
         chainID,
         contractAddr,
-        true,
+        false,
         network
     );
     console.log(result);

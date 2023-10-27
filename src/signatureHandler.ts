@@ -56,8 +56,8 @@ function construct_typedData(
                 name: 'SigVerify',
                 version: '0',
                 // chainId: 4,
-                chainId: 1, // on which chainID to use
-                verifyingContract: "0x358AA13c52544ECCEF6B0ADD0f801012ADAD5eE3" // zClock Verification 
+                chainId: 420, // on which chainID to use
+                verifyingContract: "0x16DD27b59cAa6C2D67cB328EDad7E3Df19a59c60" // zClock Verification 
             },
             message: {
                 digest: digest,
@@ -92,8 +92,8 @@ function construct_typedData(
                 name: 'SigVerify',
                 version: '0',
                 // chainId: 4,
-                chainId: chainID, // on which chainID to use
-                verifyingContract: "0x358AA13c52544ECCEF6B0ADD0f801012ADAD5eE3" // zClock Verification 
+                chainId: 420, // on which chainID to use
+                verifyingContract: "0x16DD27b59cAa6C2D67cB328EDad7E3Df19a59c60" // zClock Verification 
             },
             message: {
                 digest: digest,
