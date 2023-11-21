@@ -55,7 +55,6 @@ export function sui_sign_kyc(
         timestamp,
         riskScore
     );
-    let a = u8aToHex(sha256(concatData));
     const signature = keypair.sign(sha256(concatData));
     return signature;
 

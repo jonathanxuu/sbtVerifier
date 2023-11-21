@@ -10,7 +10,6 @@ import { eip712_sign_kyc, sui_sign_kyc } from './signatureHandler';
 import { Keyring } from '@zcloak/keyring';
 import { u8aToHex, hexToU8a } from '@polkadot/util'
 import { fromMnemonic } from '@zcloak/did/keys';
-import * as elliptic from 'elliptic';
 
 // ======================== phase 0: The PublicVC Field ====================================
 // The following metadata should be passed from web to server
