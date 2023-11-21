@@ -6,10 +6,11 @@ import dayjs from 'dayjs';
 import {
     initCrypto
 } from '@zcloak/crypto';
-import { eip712_sign_kyc } from './signatureHandler';
+import { eip712_sign_kyc, sui_sign_kyc } from './signatureHandler';
 import { Keyring } from '@zcloak/keyring';
 import { u8aToHex, hexToU8a } from '@polkadot/util'
 import { fromMnemonic } from '@zcloak/did/keys';
+import * as elliptic from 'elliptic';
 
 // ======================== phase 0: The PublicVC Field ====================================
 // The following metadata should be passed from web to server
@@ -19,7 +20,7 @@ let ctype: HexString =
 let vcVersion: VerifiableCredentialVersion = '2';
 let issuanceDate: number = 1698305373148;
 let expirationDate: number = 0;
-let digest: HexString = '0x18ade1688a9746a765856f3012eaa923d06421ffade57476bff487bf332e8d17';
+let digest: HexString = '0xdc89fd99ed289caf9bc69fba4f9d64f12969b25ccdaa9eeada03e8eda21694b0';
 let attesterDid: DidUrl = 'did:zk:0xFeDE01Ff4402e35c6f6d20De9821d64bDF4Ba563';
 let attesterProof: Proof = {
     type: 'EcdsaSecp256k1SignatureEip191',
@@ -30,12 +31,10 @@ let attesterProof: Proof = {
 };
 
 // VC Claim Info
-let kyc_status: number = 1;
-let chain_code: string = 'eth';
 let on_chain_address: string = '0x05476EE9235335ADd2e50c09B2D16a3A2cC4ebEC';
 
 // the client send the following 4 params
-let network: string = 'Ethereum';
+let network: string = 'bfc';
 let chainID: number = 420;
 let contractAddr: string = '0x16DD27b59cAa6C2D67cB328EDad7E3Df19a59c60';
 
@@ -52,10 +51,10 @@ initCrypto().then(async () => {
 
     const result = await kyc_signer(
         digest,
-        chainID,
-        contractAddr,
         false,
         network
+        // chainID,
+        // contractAddr
     );
     console.log(result);
 }
@@ -65,10 +64,10 @@ initCrypto().then(async () => {
 // ================================== Main Function ========================================
 async function kyc_signer(
     digest: HexString,
-    chainID: number,
-    contractAddress: string,
     isKYA: boolean,
-    network: string
+    network: string,
+    chainID?: number,
+    contractAddress?: string,
 ): Promise<[Uint8Array, number, number?]> {
     // ========== phase 0 : Create & Run a Verifier DID in server ============
     // should be replaced with the true verifier, here is a `demo` verifier
@@ -80,7 +79,9 @@ async function kyc_signer(
     const did = fromMnemonic(testKeyring, mnemonic);
     const controllerPath = `/m/44'/60'/0'/0/0`;
     const controller = testKeyring.addFromMnemonic(mnemonic, controllerPath, 'ecdsa');
-    console.log(did.identifier)
+    
+    const controllerEd25519 = testKeyring.addFromMnemonic(mnemonic, controllerPath, 'ed25519');
+
 
     let verifier_signature: Uint8Array = new Uint8Array();
 
@@ -88,22 +89,42 @@ async function kyc_signer(
     let riskScore;
     if (isKYA) {
         riskScore = fetch_kya_result(network, on_chain_address);
-        verifier_signature = eip712_sign_kyc(
-            controller,
-            digest,
-            chainID,
-            contractAddress,
-            timestamp,
-            riskScore
-        );
+
+        if (network === `eth` && chainID !== undefined && contractAddress !== undefined){
+            verifier_signature = eip712_sign_kyc(
+                controller,
+                digest,
+                chainID,
+                contractAddress,
+                timestamp,
+                riskScore
+            );
+        } else if (network === `bfc` || `sui`){
+            verifier_signature = sui_sign_kyc(
+                controllerEd25519,
+                digest,
+                network,
+                timestamp,
+                riskScore
+            );
+        } else throw new Error(`Not support ${network} yet...`);
     } else {
-        verifier_signature = eip712_sign_kyc(
-            controller,
-            digest,
-            chainID,
-            contractAddress,
-            timestamp
-        );
+        if (network === `eth` && chainID !== undefined && contractAddress !== undefined){
+            verifier_signature = eip712_sign_kyc(
+                controller,
+                digest,
+                chainID,
+                contractAddress,
+                timestamp
+            );
+        } else if (network === `bfc` || `sui`){
+            verifier_signature = sui_sign_kyc(
+                controllerEd25519,
+                digest,
+                network,
+                timestamp
+            );
+        } else throw new Error(`Not support ${network} yet...`);
     }
     console.log(u8aToHex(verifier_signature))
     return [verifier_signature, timestamp, isKYA? riskScore : undefined];
