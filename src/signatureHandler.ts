@@ -11,12 +11,12 @@ import { sha256 } from '@noble/hashes/sha256';
 const EIP_191_PREFIX = hexToU8a('0x1901');
 
 function paddingU8a(inputArray: Uint8Array): Uint8Array{
-    if (inputArray.length == 32) {
+    if (inputArray.length == 8) {
         return inputArray;
       }
     
-      const paddedArray = new Uint8Array(32);
-      paddedArray.set(inputArray, 32 - inputArray.length);
+      const paddedArray = new Uint8Array(8);
+      paddedArray.set(inputArray, 8 - inputArray.length);
     
       return paddedArray;
 }
